@@ -38,23 +38,32 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'product_id' => 'required|unique:products',
             'name' => 'required',
             'price' => 'required|numeric',
             'description' => 'nullable',
             'stock' => 'nullable|integer',
-            'image' => 'nullable|image',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $validated['image'] = $path;
+            $imagePath = $request->file('image')->store('public/products');
+            $imageName = basename($imagePath);
+        } else {
+            $imageName = null;
         }
 
-        Product::create($validated);
+        Product::create([
+            'product_id' => $request->product_id,
+            'name' => $request->name,
+            'description' => $request->description,
+            'price' => $request->price,
+            'stock' => $request->stock,
+            'image' => $imageName,
+        ]);
 
-        return redirect('/products')->with('success', 'Product created successfully.');
+        return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
 
     public function show($id)
@@ -71,30 +80,42 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
-        $product = Product::findOrFail($id);
-        $validated = $request->validate([
+
+        $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
             'description' => 'nullable|string',
             'stock' => 'nullable|integer',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
+        $product = Product::findOrFail($id);
+
         $product->name = $request->input('name');
         $product->price = $request->input('price');
         $product->description = $request->input('description');
         $product->stock = $request->input('stock');
 
         if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
+            if ($product->image && Storage::exists('public/products/' . $product->image)) {
+                Storage::delete('public/products/' . $product->image);
             }
-            $path = $request->file('image')->store('products', 'public');
-            $validated['image'] = $path;
+
+            $imagePath = $request->file('image')->store('public/products');
+            $imageName = basename($imagePath);
+        } else {
+            $imageName = $product->image;
         }
 
-        $product->save($validated);
+        $product->update([
+            'product_id' => $request->product_id,
+            'name' => $request->name,
+            'description' => $request->description,
+            'price' => $request->price,
+            'stock' => $request->stock,
+            'image' => $imageName,
+        ]);
 
-        return redirect('/products')->with('success', 'Product updated successfully.');
+        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
 
     public function destroy($id)
