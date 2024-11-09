@@ -60,9 +60,9 @@
                 <td>{{ $product->stock ?? 'N/A' }}</td>
                 <td>
                     @if ($product->image)
-                    <img src="{{ asset('storage/products/' . $product->image) }}" alt="Product Image" width="50" class="img-fluid">
+                    <img src="{{ asset('storage/products/' . $product->image) }}" alt="Product Image" width="50" class="img-thumbnail">
                     @else
-                    <img src="{{ asset('storage/products/default.jpg') }}" alt="Default Image" class="img-fluid" width="100" />
+                    <img src="{{ asset('storage/products/default.jpg') }}" alt="Default Image" class="img-thumbnail" width="100" />
                     @endif
                 </td>
                 <td>

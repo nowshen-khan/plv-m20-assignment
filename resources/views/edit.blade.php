@@ -16,6 +16,10 @@
         @csrf
         @method('PUT')
         <div class="mb-3">
+            <label for="product_id">Product ID</label>
+            <input type="text" class="form-control" name="product_id" value="{{ $product->product_id }}" required>
+        </div>
+        <div class="mb-3">
             <label for="name">Name</label>
             <input type="text" class="form-control" name="name" value="{{ $product->name }}" required>
         </div>
