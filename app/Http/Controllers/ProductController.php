@@ -47,21 +47,20 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('public/products');
-            $imageName = basename($imagePath);
-        } else {
-            $imageName = null;
-        }
+        $product = new Product;
+        $product->product_id = $request->product_id;
+        $product->name = $request->name;
+        $product->description = $request->description;
+        $product->price = $request->price;
+        $product->stock = $request->stock;
 
-        Product::create([
-            'product_id' => $request->product_id,
-            'name' => $request->name,
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'image' => $imageName,
-        ]);
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('images', 'public');
+            $product->image = $imagePath;
+        }
+        $product->save();
+
+
 
         return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
@@ -89,31 +88,29 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
         $product = Product::findOrFail($id);
-
+        $product->product_id = $request->input('product_id');
         $product->name = $request->input('name');
         $product->price = $request->input('price');
         $product->description = $request->input('description');
         $product->stock = $request->input('stock');
 
         if ($request->hasFile('image')) {
-            if ($product->image && Storage::exists('public/products/' . $product->image)) {
-                Storage::delete('public/products/' . $product->image);
+
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
             }
 
-            $imagePath = $request->file('image')->store('public/products');
-            $imageName = basename($imagePath);
-        } else {
-            $imageName = $product->image;
+            $imagePath = $request->file('image')->store('images', 'public');
+            $product->image = $imagePath;
         }
 
-        $product->update([
-            'product_id' => $request->product_id,
-            'name' => $request->name,
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'image' => $imageName,
-        ]);
+
+
+
+
+        $product->save();
+
+
 
         return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
